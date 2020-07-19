@@ -1,0 +1,1 @@
+docker run --name transaction_test -e POSTGRES_DB=transaction_test -e POSTGRES_USER=transaction_test -e POSTGRES_PASSWORD=transaction_test -d postgres
