@@ -157,6 +157,85 @@ describe('PgTransaction', function() {
 
       expect(tx.commit()).to.be.rejectedWith('Transaction not running. Cannot commit.')
     })
+
+    it('should call all of the after commit handler functions', async function() {
+      let tx = new PgTransaction(poolHolder.pool)
+
+      let afterCommitHolder = {
+        afterCommit1: false,
+        afterCommit2: false
+      }
+
+      await tx.begin()
+
+      tx.afterCommit.push(() => {
+        afterCommitHolder.afterCommit1 = true
+      })
+
+      tx.afterCommit.push(() => {
+        afterCommitHolder.afterCommit2 = true
+      })
+
+      await tx.commit()
+
+      expect(afterCommitHolder.afterCommit1).to.be.true
+      expect(afterCommitHolder.afterCommit2).to.be.true
+    })
+
+    it('should call all of the after commit handler functions and throw the first error', async function() {
+      let tx = new PgTransaction(poolHolder.pool)
+
+      await tx.begin()
+
+      await tx.query('INSERT INTO a VALUES (1)')
+
+      tx.afterCommit.push(() => {
+        throw new Error('afterCommit1')
+      })
+
+      tx.afterCommit.push(() => {
+        throw new Error('afterCommit2')
+      })
+
+      expect(tx.commit()).to.be.rejectedWith('afterCommit1')
+
+      let result = await poolHolder.pool.query('SELECT * FROM a')
+      expect(result.rows.length).to.equal(1)
+      expect(result.rows[0].b).to.equal(1)
+    })
+
+    it('should call the after commit handler functions only one time', async function() {
+      let tx = new PgTransaction(poolHolder.pool)
+
+      let afterCommitHolder = {
+        afterCommit1: false,
+        afterCommit2: false
+      }
+
+      await tx.begin()
+
+      tx.afterCommit.push(() => {
+        afterCommitHolder.afterCommit1 = true
+      })
+
+      tx.afterCommit.push(() => {
+        afterCommitHolder.afterCommit2 = true
+      })
+
+      await tx.commit()
+
+      expect(afterCommitHolder.afterCommit1).to.be.true
+      expect(afterCommitHolder.afterCommit2).to.be.true
+
+      afterCommitHolder.afterCommit1 = false
+      afterCommitHolder.afterCommit2 = false
+
+      await tx.begin()
+      await tx.commit()
+
+      expect(afterCommitHolder.afterCommit1).to.be.false
+      expect(afterCommitHolder.afterCommit2).to.be.false
+    })
   })
 
   describe('rollback', function() {
