@@ -168,11 +168,11 @@ describe('PgTransaction', function() {
 
       await tx.begin()
 
-      tx.afterCommit.push(() => {
+      tx.afterCommit(() => {
         afterCommitHolder.afterCommit1 = true
       })
 
-      tx.afterCommit.push(() => {
+      tx.afterCommit(() => {
         afterCommitHolder.afterCommit2 = true
       })
 
@@ -189,11 +189,11 @@ describe('PgTransaction', function() {
 
       await tx.query('INSERT INTO a VALUES (1)')
 
-      tx.afterCommit.push(() => {
+      tx.afterCommit(() => {
         throw new Error('afterCommit1')
       })
 
-      tx.afterCommit.push(() => {
+      tx.afterCommit(() => {
         throw new Error('afterCommit2')
       })
 
@@ -214,11 +214,11 @@ describe('PgTransaction', function() {
 
       await tx.begin()
 
-      tx.afterCommit.push(() => {
+      tx.afterCommit(() => {
         afterCommitHolder.afterCommit1 = true
       })
 
-      tx.afterCommit.push(() => {
+      tx.afterCommit(() => {
         afterCommitHolder.afterCommit2 = true
       })
 

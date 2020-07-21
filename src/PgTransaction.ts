@@ -6,7 +6,7 @@ export default class PgTransaction {
   client?: PoolClient
   beginCounter: number = 0
   throwingWrongCommitOrRollbackError = false
-  afterCommit: (() => any)[] = []
+  afterCommitFunctions: (() => any)[] = []
 
   constructor(pool: Pool) {
     this.pool = pool
@@ -62,13 +62,11 @@ export default class PgTransaction {
       this.beginCounter = 0
       this.throwingWrongCommitOrRollbackError = false
 
-      if (this.afterCommit instanceof Array) {
-        for (let after of this.afterCommit) {
-          after()
-        }
+      for (let fn of this.afterCommitFunctions) {
+        fn()
       }
 
-      this.afterCommit = []
+      this.afterCommitFunctions = []
     }
     else {
       this.beginCounter--
@@ -157,5 +155,9 @@ export default class PgTransaction {
     }
 
     return this.client!.query(arg1, arg2, arg3)
+  }
+
+  afterCommit(fn: () => any): void {
+    this.afterCommitFunctions.push(fn)
   }
 }
