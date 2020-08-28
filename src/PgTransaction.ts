@@ -109,11 +109,13 @@ export default class PgTransaction {
     }
     catch (e) {
       console.error(e)
+
       if (! this.throwingWrongCommitOrRollbackError) {
         try {
           await this.rollback()
         }
         catch (e) {
+          console.error(e)
           this.release()
           throw new Error(e)
         }
