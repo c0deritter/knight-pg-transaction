@@ -6,6 +6,7 @@ export default class PgTransaction {
   client?: PoolClient
   beginCounter: number = 0
   throwingWrongCommitOrRollbackError = false
+  afterConnectFunctions: (() => any)[] = []
   afterCommitFunctions: (() => any)[] = []
 
   constructor(pool: Pool) {
@@ -15,6 +16,10 @@ export default class PgTransaction {
   async connect(): Promise<PoolClient> {
     if (! this.client) {
       this.client = await this.pool.connect()
+
+      for (let fn of this.afterConnectFunctions) {
+        fn()
+      }
     }
 
     return this.client
@@ -126,6 +131,14 @@ export default class PgTransaction {
     }
   }
 
+  afterConnect(fn: () => any): void {
+    this.afterConnectFunctions.push(fn)
+  }
+
+  afterCommit(fn: () => any): void {
+    this.afterCommitFunctions.push(fn)
+  }
+
   query<T extends Submittable>(queryStream: T): T
   query<R extends any[] = any[], I extends any[] = any[]>(
       queryConfig: QueryArrayConfig<I>,
@@ -158,9 +171,5 @@ export default class PgTransaction {
     }
 
     return this.client!.query(arg1, arg2, arg3)
-  }
-
-  afterCommit(fn: () => any): void {
-    this.afterCommitFunctions.push(fn)
   }
 }

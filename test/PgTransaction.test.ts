@@ -45,6 +45,36 @@ describe('PgTransaction', function() {
       expect(tx.client).to.be.not.undefined
       expect(poolHolder.pool.idleCount).to.equal(0)
     })
+
+    it('should call all of the after connect handler functions', async function() {
+      let tx = new PgTransaction(poolHolder.pool)
+
+      let afterConnectHolder = {
+        afterConnect1: false,
+        afterConnect2: false
+      }
+
+      tx.afterConnect(() => {
+        afterConnectHolder.afterConnect1 = true
+      })
+
+      tx.afterConnect(() => {
+        afterConnectHolder.afterConnect2 = true
+      })
+
+      await tx.connect()
+
+      expect(afterConnectHolder.afterConnect1).to.be.true
+      expect(afterConnectHolder.afterConnect2).to.be.true
+
+      afterConnectHolder.afterConnect1 = false
+      afterConnectHolder.afterConnect2 = false
+
+      tx.release()
+
+      expect(afterConnectHolder.afterConnect1).to.be.false
+      expect(afterConnectHolder.afterConnect2).to.be.false
+    })
   })
 
   describe('release', function() {
@@ -107,6 +137,17 @@ describe('PgTransaction', function() {
       let result = await poolHolder.pool.query('SELECT * FROM a')
       expect(result.rows.length).to.equal(1)
       expect(result.rows[0].b).to.equal(1)
+    })
+
+    it('should not commit anything if there was nothing started but still release the pool client', async function() {
+      let tx = new PgTransaction(poolHolder.pool)
+      await tx.connect()
+      await tx.commit()
+    })
+
+    it('should not commit anything if there was nothing started and not even release the pool client', async function() {
+      let tx = new PgTransaction(poolHolder.pool)
+      await tx.commit()
     })
 
     it('should not commit a transaction if there was more than one begin', async function() {
