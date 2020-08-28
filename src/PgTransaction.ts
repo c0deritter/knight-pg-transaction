@@ -18,7 +18,7 @@ export default class PgTransaction {
       this.client = await this.pool.connect()
 
       for (let fn of this.afterConnectFunctions) {
-        fn()
+        await fn()
       }
     }
 
@@ -68,7 +68,7 @@ export default class PgTransaction {
       this.throwingWrongCommitOrRollbackError = false
 
       for (let fn of this.afterCommitFunctions) {
-        fn()
+        await fn()
       }
 
       this.afterCommitFunctions = []
