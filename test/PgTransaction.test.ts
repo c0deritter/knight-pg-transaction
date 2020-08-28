@@ -139,17 +139,6 @@ describe('PgTransaction', function() {
       expect(result.rows[0].b).to.equal(1)
     })
 
-    it('should not commit anything if there was nothing started but still release the pool client', async function() {
-      let tx = new PgTransaction(poolHolder.pool)
-      await tx.connect()
-      await tx.commit()
-    })
-
-    it('should not commit anything if there was nothing started and not even release the pool client', async function() {
-      let tx = new PgTransaction(poolHolder.pool)
-      await tx.commit()
-    })
-
     it('should not commit a transaction if there was more than one begin', async function() {
       let tx = new PgTransaction(poolHolder.pool)
 
