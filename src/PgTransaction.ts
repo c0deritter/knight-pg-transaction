@@ -41,13 +41,15 @@ export default class PgTransaction {
 
     if (this.beginCounter == 0) {
       await this.client!.query('BEGIN')
+      this.beginCounter++
 
       for (let fn of this.afterBeginFunctions) {
         await fn()
       }
     }
-
-    this.beginCounter++
+    else {
+      this.beginCounter++
+    }
   }
 
   async commit(): Promise<void> {

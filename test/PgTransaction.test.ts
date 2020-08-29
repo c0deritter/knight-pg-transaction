@@ -116,7 +116,7 @@ describe('PgTransaction', function() {
       afterBeginHolder.afterBegin1 = false
       afterBeginHolder.afterBegin2 = false
 
-      tx.commit()
+      await tx.commit()
 
       expect(afterBeginHolder.afterBegin1).to.be.false
       expect(afterBeginHolder.afterBegin2).to.be.false
