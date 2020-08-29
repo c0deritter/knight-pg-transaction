@@ -6,7 +6,7 @@ export default class PgTransaction {
   client?: PoolClient
   beginCounter: number = 0
   throwingWrongCommitOrRollbackError = false
-  afterConnectFunctions: (() => any)[] = []
+  afterBeginFunctions: (() => any)[] = []
   afterCommitFunctions: (() => any)[] = []
 
   constructor(pool: Pool) {
@@ -16,10 +16,6 @@ export default class PgTransaction {
   async connect(): Promise<PoolClient> {
     if (! this.client) {
       this.client = await this.pool.connect()
-
-      for (let fn of this.afterConnectFunctions) {
-        await fn()
-      }
     }
 
     return this.client
@@ -45,6 +41,10 @@ export default class PgTransaction {
 
     if (this.beginCounter == 0) {
       await this.client!.query('BEGIN')
+
+      for (let fn of this.afterBeginFunctions) {
+        await fn()
+      }
     }
 
     this.beginCounter++
@@ -131,8 +131,8 @@ export default class PgTransaction {
     }
   }
 
-  afterConnect(fn: () => any): void {
-    this.afterConnectFunctions.push(fn)
+  afterBegin(fn: () => any): void {
+    this.afterBeginFunctions.push(fn)
   }
 
   afterCommit(fn: () => any): void {

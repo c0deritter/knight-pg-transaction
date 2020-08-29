@@ -45,36 +45,6 @@ describe('PgTransaction', function() {
       expect(tx.client).to.be.not.undefined
       expect(poolHolder.pool.idleCount).to.equal(0)
     })
-
-    it('should call all of the after connect handler functions', async function() {
-      let tx = new PgTransaction(poolHolder.pool)
-
-      let afterConnectHolder = {
-        afterConnect1: false,
-        afterConnect2: false
-      }
-
-      tx.afterConnect(() => {
-        afterConnectHolder.afterConnect1 = true
-      })
-
-      tx.afterConnect(() => {
-        afterConnectHolder.afterConnect2 = true
-      })
-
-      await tx.connect()
-
-      expect(afterConnectHolder.afterConnect1).to.be.true
-      expect(afterConnectHolder.afterConnect2).to.be.true
-
-      afterConnectHolder.afterConnect1 = false
-      afterConnectHolder.afterConnect2 = false
-
-      tx.release()
-
-      expect(afterConnectHolder.afterConnect1).to.be.false
-      expect(afterConnectHolder.afterConnect2).to.be.false
-    })
   })
 
   describe('release', function() {
@@ -120,6 +90,36 @@ describe('PgTransaction', function() {
       await tx.begin()
       expect(tx.client).to.be.not.undefined
       expect(tx.beginCounter).to.equal(3)
+    })
+
+    it('should call all of the after begin handler functions', async function() {
+      let tx = new PgTransaction(poolHolder.pool)
+
+      let afterBeginHolder = {
+        afterBegin1: false,
+        afterBegin2: false
+      }
+
+      tx.afterBegin(() => {
+        afterBeginHolder.afterBegin1 = true
+      })
+
+      tx.afterBegin(() => {
+        afterBeginHolder.afterBegin2 = true
+      })
+
+      await tx.begin()
+
+      expect(afterBeginHolder.afterBegin1).to.be.true
+      expect(afterBeginHolder.afterBegin2).to.be.true
+
+      afterBeginHolder.afterBegin1 = false
+      afterBeginHolder.afterBegin2 = false
+
+      tx.commit()
+
+      expect(afterBeginHolder.afterBegin1).to.be.false
+      expect(afterBeginHolder.afterBegin2).to.be.false
     })
   })
 
