@@ -115,20 +115,23 @@ export default class PgTransaction {
       return result
     }
     catch (e) {
-      console.error(e)
+      if (this.beginCounter > 0) {
+        console.error(e)
 
-      if (! this.throwingWrongCommitOrRollbackError) {
-        try {
-          await this.rollback()
+        if (! this.throwingWrongCommitOrRollbackError) {
+          try {
+            await this.rollback()
+          }
+          catch (e) {
+            console.error(e)
+            this.release()
+            throw new Error(e)
+          }
         }
-        catch (e) {
-          console.error(e)
-          this.release()
-          throw new Error(e)
-        }
+  
+        this.release()  
       }
-
-      this.release()
+      
       throw e
     }
   }

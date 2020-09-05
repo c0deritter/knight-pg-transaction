@@ -353,6 +353,23 @@ describe('PgTransaction', function() {
       expect(result.rows.length).to.equal(0)
     })
 
+    it.only('should rollback only once when two transactions are nested', async function() {
+      let tx = new PgTransaction(poolHolder.pool)
+
+      try {
+        await tx.runInTransaction(async () => {
+          await tx.runInTransaction(async () => {
+            await tx.query('INSERT INTO a VALUES (1)')
+            throw new Error()
+          })
+        })  
+      }
+      catch (e) {}
+
+      let result = await poolHolder.pool.query('SELECT * FROM a')
+      expect(result.rows.length).to.equal(0)
+    })
+
     it('should release the client if there was an error', async function() {
       let tx = new PgTransaction(poolHolder.pool)
 
