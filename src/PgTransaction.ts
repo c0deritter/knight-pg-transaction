@@ -65,6 +65,7 @@ export default class PgTransaction {
     else {
       l.debug('this.beginCounter is greater than 0. Increasing this.beginCounter...')
       this.beginCounter++
+      l.debug('this.beginCounter after incrementing', this.beginCounter)
     }
   }
 
@@ -100,6 +101,7 @@ export default class PgTransaction {
     else {
       l.debug('this.beginCounter is greater than 1. Decrementing this.beginCounter...')
       this.beginCounter--
+      l.debug('this.beginCounter after decrementing', this.beginCounter)
     }
   }
 
@@ -140,10 +142,16 @@ export default class PgTransaction {
       // Check if the user did not call commit and do it for her if needed.
       // In fact, commit as often needed until the beginCounter has the same value as before.
       // Because the user might have called begin multiple times without any call to commit at all.
+      
       l.debug('Call commit until the this.beginCounter has the value from before...')
+      l.debug('this.beginCounter', this.beginCounter)
+      l.debug('beginCounterBefore', beginCounterBefore)
+      
       while (this.beginCounter > beginCounterBefore) {
         await this.commit()
       }
+
+      l.debug('Done calling commit. New this.beginCounter value', this.beginCounter)
 
       return result
     }
