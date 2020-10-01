@@ -24,6 +24,7 @@ export default class PgTransaction {
       this.client = await this.pool.connect()
     }
 
+    l.debug('Returning client...')
     return this.client
   }
 
@@ -42,6 +43,11 @@ export default class PgTransaction {
       this.beginCounter = 0
       this.throwingWrongCommitOrRollbackError = false
     }
+    else {
+      l.debug('this.client is undefined or this.beginCounter is greater than 0. Doing nothing...')
+    }
+
+    l.debug('Returning...')
   }
 
   async begin(): Promise<void> {
@@ -66,6 +72,8 @@ export default class PgTransaction {
       l.debug('this.beginCounter is greater than 0. Increasing this.beginCounter...' + this.beginCounter + ' -> ' + (this.beginCounter + 1))
       this.beginCounter++
     }
+
+    l.debug('Returning...')
   }
 
   async commit(): Promise<void> {
@@ -102,6 +110,8 @@ export default class PgTransaction {
       l.debug('this.beginCounter is greater than 1. Decrementing this.beginCounter... ' + this.beginCounter + ' -> ' + (this.beginCounter - 1))
       this.beginCounter--
     }
+
+    l.debug('Returning...')
   }
 
   async rollback(): Promise<void> {
@@ -126,6 +136,8 @@ export default class PgTransaction {
       this.beginCounter = 0
       this.throwingWrongCommitOrRollbackError = false
     }
+
+    l.debug('Returning...')
   }
 
   async runInTransaction<T>(code: () => Promise<T>): Promise<T> {
@@ -150,12 +162,13 @@ export default class PgTransaction {
         await this.commit()
       }
 
-      l.debug('Done calling commit...')
+      l.debug('Done calling commit. Returning result...')
 
       return result
     }
     catch (e) {
       l.error('Caught an error', e)
+      l.debug('this.beginCounter', this.beginCounter)
 
       if (this.beginCounter > 0) {
         if (! this.throwingWrongCommitOrRollbackError) {
@@ -165,15 +178,17 @@ export default class PgTransaction {
             await this.rollback()
           }
           catch (e) {
-            l.debug('Could not roll back')
+            l.debug('Could not roll back. Releasing pool...')
             this.release()
             throw new Error(e)
           }
         }
   
+        l.debug('Releasing pool...')
         this.release()
       }
       
+      l.debug('Rethrowing error...')
       throw e
     }
   }
