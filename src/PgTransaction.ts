@@ -156,7 +156,7 @@ export default class PgTransaction {
       // In fact, commit as often needed until the beginCounter has the same value as before.
       // Because the user might have called begin multiple times without any call to commit at all.
       
-      l.debug('Call commit until the this.beginCounter has the value from before...' + this.beginCounter + ' -> ' + beginCounterBefore)
+      l.debug('Call commit until the this.beginCounter has the value from before... ' + this.beginCounter + ' -> ' + beginCounterBefore)
       
       while (this.beginCounter > beginCounterBefore) {
         await this.commit()
