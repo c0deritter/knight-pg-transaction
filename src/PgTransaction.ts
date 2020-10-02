@@ -1,7 +1,7 @@
 import Log from 'mega-nice-log'
 import { Pool, PoolClient, QueryArrayConfig, QueryArrayResult, QueryConfig, QueryResult, QueryResultRow, Submittable } from 'pg'
 
-let log = new Log('PgTransaction.ts')
+let log = new Log('mega-nice-pg-transaction/PgTransaction.ts')
 
 export default class PgTransaction {
 
