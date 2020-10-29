@@ -1,6 +1,6 @@
 {
   "name": "mega-nice-pg-transaction",
-  "version": "1.2.9",
+  "version": "1.2.10",
   "description": "A mega nice transaction lib for PostgreSQL",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -8,7 +8,7 @@
     "lib/**/*"
   ],
   "dependencies": {
-    "mega-nice-log": "^3.0.0"
+    "mega-nice-log": "^3.0.1"
   },
   "devDependencies": {
     "@types/chai": "^4.2.14",
