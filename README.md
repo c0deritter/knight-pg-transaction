@@ -99,7 +99,7 @@ await tx.connect()
 await tx.connect()
 ```
 
-### release
+### release()
 
 Releases the connection to the pool. This method will automatically be called when calling `commit()` or `rollback()`. When there is a running transaction this method will not release the connection but throw an error.
 
