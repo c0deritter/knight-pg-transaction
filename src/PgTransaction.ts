@@ -1,4 +1,4 @@
-import Log from 'mega-nice-log'
+import Log from 'knight-log'
 import { Pool, PoolClient, QueryArrayConfig, QueryArrayResult, QueryConfig, QueryResult, QueryResultRow, Submittable } from 'pg'
 
 let log = new Log('knight-pg-transaction/PgTransaction.ts')
