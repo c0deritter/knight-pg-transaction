@@ -71,7 +71,7 @@ describe('PgTransaction', function() {
   })
 
   describe('begin', function() {
-    it('should beginn a transaction and connect automatically', async function() {
+    it('should begin a transaction and connect automatically', async function() {
       let tx = new PgTransaction(poolHolder.pool)
 
       await tx.begin()
