@@ -1,6 +1,6 @@
 {
   "name": "knight-pg-transaction",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A transaction lib for PostgreSQL",
   "main": "lib/index.js",
   "types": "lib/index.d.ts",
@@ -36,6 +36,6 @@
   },
   "homepage": "https://github.com/c0deritter/knight-pg-transaction#readme",
   "dependencies": {
-    "knight-log": "^1.0.0"
+    "knight-log": "^1.0.2"
   }
 }

@@ -1,4 +1,4 @@
-import Log from 'knight-log'
+import { Log } from 'knight-log'
 import { Pool, PoolClient, QueryArrayConfig, QueryArrayResult, QueryConfig, QueryResult, QueryResultRow, Submittable } from 'pg'
 
 let log = new Log('knight-pg-transaction/PgTransaction.ts')
@@ -20,68 +20,68 @@ export default class PgTransaction {
     let l = log.mt('connect')
 
     if (! this.client) {
-      l.user('No client found. Connecting pool...')
+      l.libUser('No client found. Connecting pool...')
       this.client = await this.pool.connect()
     }
 
-    l.user('Returning client...')
+    l.libUser('Returning client...')
     return this.client
   }
 
   release(): void {
     let l = log.mt('release')
-    l.user('this.beginCounter', this.beginCounter)
+    l.libUser('this.beginCounter', this.beginCounter)
 
     if (this.beginCounter > 0) {
       throw new Error('Transaction is running. Cannot release.')
     }
 
     if (this.client && this.beginCounter == 0) {
-      l.user('There is a client and this.beginCounter is 0. Releasing pool...')
+      l.libUser('There is a client and this.beginCounter is 0. Releasing pool...')
       this.client.release()
       this.client = undefined
       this.beginCounter = 0
       this.throwingWrongCommitOrRollbackError = false
     }
     else {
-      l.user('this.client is undefined or this.beginCounter is greater than 0. Doing nothing...')
+      l.libUser('this.client is undefined or this.beginCounter is greater than 0. Doing nothing...')
     }
 
-    l.user('Returning...')
+    l.libUser('Returning...')
   }
 
   async begin(): Promise<void> {
     let l = log.mt('begin')
 
     if (! this.client) {
-      l.user('No client found. Connecting...')
+      l.libUser('No client found. Connecting...')
       await this.connect()
     }
 
     if (this.beginCounter == 0) {
-      l.user('this.beginCounter is 0. Beginning new transaction...')
+      l.libUser('this.beginCounter is 0. Beginning new transaction...')
       await this.client!.query('BEGIN')
       this.beginCounter++
 
-      l.user('Executing this.afterBeginFunctions...')
+      l.libUser('Executing this.afterBeginFunctions...')
       for (let fn of this.afterBeginFunctions) {
         await fn()
       }
     }
     else {
-      l.user('this.beginCounter is greater than 0. Increasing this.beginCounter...' + this.beginCounter + ' -> ' + (this.beginCounter + 1))
+      l.libUser('this.beginCounter is greater than 0. Increasing this.beginCounter...' + this.beginCounter + ' -> ' + (this.beginCounter + 1))
       this.beginCounter++
     }
 
-    l.user('Returning...')
+    l.libUser('Returning...')
   }
 
   async commit(): Promise<void> {
     let l = log.mt('commit')
-    l.user('this.beginCounter', this.beginCounter)
+    l.libUser('this.beginCounter', this.beginCounter)
 
     if (this.beginCounter <= 0) {
-      l.user('this.beginCounter is 0. Cannot commit. Setting this.throwingWrongCommitOrRollbackError to true...')
+      l.libUser('this.beginCounter is 0. Cannot commit. Setting this.throwingWrongCommitOrRollbackError to true...')
       this.throwingWrongCommitOrRollbackError = true
       throw new Error('Transaction not running. Cannot commit.')
     }
@@ -91,7 +91,7 @@ export default class PgTransaction {
     }
 
     if (this.beginCounter == 1) {
-      l.user('this.beginCounter is 1. Committing transaction...')
+      l.libUser('this.beginCounter is 1. Committing transaction...')
 
       await this.client.query('COMMIT')
       this.client.release()
@@ -99,7 +99,7 @@ export default class PgTransaction {
       this.beginCounter = 0
       this.throwingWrongCommitOrRollbackError = false
 
-      l.user('Executing this.afterCommitFunctions...')
+      l.libUser('Executing this.afterCommitFunctions...')
       for (let fn of this.afterCommitFunctions) {
         await fn()
       }
@@ -107,19 +107,19 @@ export default class PgTransaction {
       this.afterCommitFunctions = []
     }
     else {
-      l.user('this.beginCounter is greater than 1. Decrementing this.beginCounter... ' + this.beginCounter + ' -> ' + (this.beginCounter - 1))
+      l.libUser('this.beginCounter is greater than 1. Decrementing this.beginCounter... ' + this.beginCounter + ' -> ' + (this.beginCounter - 1))
       this.beginCounter--
     }
 
-    l.user('Returning...')
+    l.libUser('Returning...')
   }
 
   async rollback(): Promise<void> {
     let l = log.mt('rollback')
-    l.user('this.beginCounter', this.beginCounter)
+    l.libUser('this.beginCounter', this.beginCounter)
 
     if (this.beginCounter <= 0) {
-      l.user('this.beginCounter is 0. Cannot rollback. Setting this.throwingWrongCommitOrRollbackError to true...')
+      l.libUser('this.beginCounter is 0. Cannot rollback. Setting this.throwingWrongCommitOrRollbackError to true...')
       this.throwingWrongCommitOrRollbackError = true
       throw new Error('Transaction not running. Cannot rollback.')
     }
@@ -129,7 +129,7 @@ export default class PgTransaction {
     }
 
     if (this.beginCounter > 0) {
-      l.user('this.beginCounter is greater than 0. Rolling back...')
+      l.libUser('this.beginCounter is greater than 0. Rolling back...')
       await this.client.query('ROLLBACK')
       this.client.release()
       this.client = undefined
@@ -137,7 +137,7 @@ export default class PgTransaction {
       this.throwingWrongCommitOrRollbackError = false
     }
 
-    l.user('Returning...')
+    l.libUser('Returning...')
   }
 
   async runInTransaction<T>(code: () => Promise<T>): Promise<T> {
@@ -145,50 +145,50 @@ export default class PgTransaction {
 
     try {
       let beginCounterBefore = this.beginCounter
-      l.user('beginCounterBefore', beginCounterBefore)
+      l.libUser('beginCounterBefore', beginCounterBefore)
 
       await this.begin()
 
-      l.user('Executing given code...')
+      l.libUser('Executing given code...')
       let result = await code()
 
       // Check if the user did not call commit and do it for her if needed.
       // In fact, commit as often needed until the beginCounter has the same value as before.
       // Because the user might have called begin multiple times without any call to commit at all.
       
-      l.user('Call commit until the this.beginCounter has the value from before... ' + this.beginCounter + ' -> ' + beginCounterBefore)
+      l.libUser('Call commit until the this.beginCounter has the value from before... ' + this.beginCounter + ' -> ' + beginCounterBefore)
       
       while (this.beginCounter > beginCounterBefore) {
         await this.commit()
       }
 
-      l.user('Done calling commit. Returning result...')
+      l.libUser('Done calling commit. Returning result...')
 
       return result
     }
     catch (e) {
       l.error('Caught an error', e)
-      l.user('this.beginCounter', this.beginCounter)
+      l.libUser('this.beginCounter', this.beginCounter)
 
       if (this.beginCounter > 0) {
         if (! this.throwingWrongCommitOrRollbackError) {
-          l.user('this.beginCounter is greater than 0 and not throwing from wrong commit nor from wrong rollback. Rolling back...')
+          l.libUser('this.beginCounter is greater than 0 and not throwing from wrong commit nor from wrong rollback. Rolling back...')
 
           try {
             await this.rollback()
           }
           catch (e) {
-            l.user('Could not roll back. Releasing pool...')
+            l.libUser('Could not roll back. Releasing pool...')
             this.release()
             throw new Error(e)
           }
         }
   
-        l.user('Releasing pool...')
+        l.libUser('Releasing pool...')
         this.release()
       }
       
-      l.user('Rethrowing error...')
+      l.libUser('Rethrowing error...')
       throw e
     }
   }
