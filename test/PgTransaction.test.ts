@@ -353,7 +353,7 @@ describe('PgTransaction', function() {
       expect(result.rows.length).to.equal(0)
     })
 
-    it.only('should rollback only once when two transactions are nested', async function() {
+    it('should rollback only once when two transactions are nested', async function() {
       let tx = new PgTransaction(poolHolder.pool)
 
       try {
